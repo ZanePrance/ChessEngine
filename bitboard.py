@@ -265,13 +265,32 @@ def main():
     clock = p.time.Clock()
     screen.fill(p.Color('white'))
     load_images()
+
     running = True
+    sqSelected = None # Keep track of the last square selected
+    playerClicks = [] # Keeps track of the selected square and the target square as two ints i.e [8, 16]
 
     while running:
         drawGameState(screen, board)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
+            elif e.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()
+                row = location[0] // SQ_SIZE
+                col = location[1] // SQ_SIZE
+
+                idxSelected = row * 8 + col
+
+                if sqSelected == idxSelected:
+                    sqSelected == None # if user clicks the same square twice deselect it 
+                    playerClicks = []
+                else:
+                    sqSelected = idxSelected
+                    playerClicks.append(sqSelected)
+
+            
+                
 
         clock.tick(MAX_FPS)
         p.display.flip()
