@@ -1,5 +1,4 @@
-
-#Parent class of all pieces
+# Parent class of all pieces
 class Piece:
     def __init__(self, square, value, color, name, alive=True):
         self.square = square
@@ -10,51 +9,36 @@ class Piece:
 
     def move(self):
         raise NotImplementedError("This method should be overridden by subclass")
-    
+
     def __str__(self):
         return f"{self.__class__.__name__}({self.color}, {'Alive' if self.alive else 'Captured'})"
-    
-    #getters
+
+    # Getters
     def getName(self):
         return self.name
-    
+
     def getColor(self):
         return self.color
-    
+
     def getValue(self):
         return self.value
-    
+
     def getSquare(self):
         return self.square
-    
+
     def isAlive(self):
         return self.alive
-    
+
+    # Each piece should override this method to return its own legal moves
     def legal_moves(self, board):
-        possible_moves = self.move()
-        legal_moves = []
+        raise NotImplementedError("This method should be overridden by subclass")
 
-        for move in possible_moves:
-            target_piece = board.getSquares()[move]
-            if target_piece == 0:
-                legal_moves.append(move)
-            elif target_piece.color != self.color:
-                legal_moves.append(move)
-                break
-            else:
-                break
-
-        return legal_moves
-    
-    
-    
-  
-#derived classes
+# Derived classes
 class Pawn(Piece):
     def __init__(self, square, color, name):
         super().__init__(square, value=1, color=color, name=name)
         self.first_move = True
-    
+
     def move(self):
         possible_moves = []
         row = self.square // 8
@@ -71,7 +55,6 @@ class Pawn(Piece):
             if 0 <= two_step < 64:
                 possible_moves.append(two_step)
 
-
         # Diagonal captures
         capture_moves = [
             (row + direction, col + 1),
@@ -83,7 +66,7 @@ class Pawn(Piece):
                 possible_moves.append(r * 8 + c)
 
         return possible_moves
-    
+
     def legal_moves(self, board):
         possible_moves = self.move()
         legal_moves = []
@@ -107,11 +90,11 @@ class Pawn(Piece):
         self.square = destination
         board.setSquares(destination, self)
         self.first_move = False
-    
+
 class Rook(Piece):
     def __init__(self, square, color, name):
         super().__init__(square, value=5, color=color, name=name)
-    
+
     def move(self):
         possible_moves = []
         row = self.square // 8
@@ -128,12 +111,45 @@ class Rook(Piece):
                 possible_moves.append(r * 8 + col)
 
         return possible_moves
-    
+
+    def legal_moves(self, board):
+        possible_moves = self.move()
+        legal_moves = []
+        row = self.square // 8
+        col = self.square % 8
+
+        # Horizontal and vertical moves
+        directions = [
+            (0, 1),   # Right
+            (0, -1),  # Left
+            (1, 0),   # Down
+            (-1, 0)   # Up
+        ]
+
+        for direction in directions:
+            r, c = row, col
+            while True:
+                r += direction[0]
+                c += direction[1]
+                if 0 <= r < 8 and 0 <= c < 8:
+                    move = r * 8 + c
+                    target_piece = board.getSquares()[move]
+                    if target_piece == 0:
+                        legal_moves.append(move)
+                    elif target_piece.color != self.color:
+                        legal_moves.append(move)
+                        break
+                    else:
+                        break
+                else:
+                    break
+
+        return legal_moves
 
 class Bishop(Piece):
     def __init__(self, square, color, name):
         super().__init__(square, value=3, color=color, name=name)
-    
+
     def move(self):
         possible_moves = []
         row = self.square // 8
@@ -159,10 +175,41 @@ class Bishop(Piece):
 
         return possible_moves
 
+    def legal_moves(self, board):
+        possible_moves = self.move()
+        legal_moves = []
+
+        directions = [
+            (1, 1),   # Top-right
+            (1, -1),  # Top-left
+            (-1, 1),  # Bottom-right
+            (-1, -1)  # Bottom-left
+        ]
+
+        for direction in directions:
+            r, c = self.square // 8, self.square % 8
+            while True:
+                r += direction[0]
+                c += direction[1]
+                if 0 <= r < 8 and 0 <= c < 8:
+                    move = r * 8 + c
+                    target_piece = board.getSquares()[move]
+                    if target_piece == 0:
+                        legal_moves.append(move)
+                    elif target_piece.color != self.color:
+                        legal_moves.append(move)
+                        break
+                    else:
+                        break
+                else:
+                    break
+
+        return legal_moves
+
 class Knight(Piece):
     def __init__(self, square, color, name):
         super().__init__(square, value=3, color=color, name=name)
-    
+
     def move(self):
         possible_moves = []
         row = self.square // 8
@@ -196,12 +243,10 @@ class Knight(Piece):
 
         return legal_moves
 
-
-
 class Queen(Piece):
     def __init__(self, square, color, name):
         super().__init__(square, value=9, color=color, name=name)
-    
+
     def move(self):
         possible_moves = []
         row = self.square // 8
@@ -236,11 +281,46 @@ class Queen(Piece):
 
         return possible_moves
 
-# debug the king moves
+    def legal_moves(self, board):
+        possible_moves = self.move()
+        legal_moves = []
+
+        directions = [
+            (1, 1),   # Top-right
+            (1, -1),  # Top-left
+            (-1, 1),  # Bottom-right
+            (-1, -1),  # Bottom-left
+            (0, 1),   # Right
+            (0, -1),  # Left
+            (1, 0),   # Down
+            (-1, 0)   # Up
+        ]
+
+        for direction in directions:
+            r, c = self.square // 8, self.square % 8
+            while True:
+                r += direction[0]
+                c += direction[1]
+                if 0 <= r < 8 and 0 <= c < 8:
+                    move = r * 8 + c
+                    target_piece = board.getSquares()[move]
+                    if target_piece == 0:
+                        legal_moves.append(move)
+                    elif target_piece.color != self.color:
+                        legal_moves.append(move)
+                        break
+                    else:
+                        break
+                else:
+                    break
+
+        return legal_moves
+
+# King
 class King(Piece):
     def __init__(self, square, color, name):
         super().__init__(square, value=1000, color=color, name=name)
-    
+
     def move(self):
         possible_moves = []
         row = self.square // 8
@@ -256,10 +336,21 @@ class King(Piece):
             (-1, 1),  # Up-right
             (-1, -1)  # Up-left
         ]
-        
+
         for direction in directions:
             r, c = row + direction[0], col + direction[1]
             if 0 <= r < 8 and 0 <= c < 8:
                 possible_moves.append(r * 8 + c)
-        
+
         return possible_moves
+
+    def legal_moves(self, board):
+        possible_moves = self.move()
+        legal_moves = []
+
+        for move in possible_moves:
+            target_piece = board.getSquares()[move]
+            if target_piece == 0 or target_piece.color != self.color:
+                legal_moves.append(move)
+
+        return legal_moves

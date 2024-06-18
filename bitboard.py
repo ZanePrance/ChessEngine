@@ -1,6 +1,16 @@
 from Pieces.piece import *
 from Pieces.utils import *
 import random
+import pygame as p
+
+# global vars for loading image
+WIDTH = HEIGHT = 512
+DIMENSION = 8
+SQ_SIZE = HEIGHT // DIMENSION
+MAX_FPS = 15
+IMAGES = {}
+
+
 
 # for the real board
 class Board:
@@ -9,43 +19,50 @@ class Board:
         self.turn= "White"
         self.white_pieces = []
         self.black_pieces = []
+        self.movelog = []
         self.setup()
 
     def setup(self):
         # White pieces
-        self.Squares[0] = Rook(square=0, color="White", name="WR1")
-        self.Squares[1] = Knight(square=1, color="White", name="WN1")
-        self.Squares[2] = Bishop(square=2, color="White", name="WB1")
-        self.Squares[3] = Queen(square=3, color="White", name="WQ")
-        self.Squares[4] = King(square=4, color="White", name="WK")
-        self.Squares[5] = Bishop(square=5, color="White", name="WB2")
-        self.Squares[6] = Knight(square=6, color="White", name="WN2")
-        self.Squares[7] = Rook(square=7, color="White", name="WR2")
+        self.Squares[0] = Rook(square=0, color="White", name="wR")
+        self.Squares[1] = Knight(square=1, color="White", name="wN")
+        self.Squares[2] = Bishop(square=2, color="White", name="wB")
+        self.Squares[3] = Queen(square=3, color="White", name="wQ")
+        self.Squares[4] = King(square=4, color="White", name="wK")
+        self.Squares[5] = Bishop(square=5, color="White", name="wB")
+        self.Squares[6] = Knight(square=6, color="White", name="wN")
+        self.Squares[7] = Rook(square=7, color="White", name="wR")
 
         for i in range(8):
-            self.Squares[8 + i] = Pawn(square=8 + i, color="White", name=f"WP{i}")
+            self.Squares[8 + i] = Pawn(square=8 + i, color="White", name=f"wp")
 
         # Empty squares between the pieces
         for i in range(16, 48):
             self.Squares[i] = 0
 
         for i in range(8):
-            self.Squares[48 + i] = Pawn(square=48 + i, color="Black", name=f"BP{i}")
+            self.Squares[48 + i] = Pawn(square=48 + i, color="Black", name=f"bp")
 
-        self.Squares[56] = Rook(square=56, color="Black", name="BR1")
-        self.Squares[57] = Knight(square=57, color="Black", name="BN1")
-        self.Squares[58] = Bishop(square=58, color="Black", name="BB1")
-        self.Squares[59] = Queen(square=59, color="Black", name="BQ")
-        self.Squares[60] = King(square=60, color="Black", name="BK")
-        self.Squares[61] = Bishop(square=61, color="Black", name="BB2")
-        self.Squares[62] = Knight(square=62, color="Black", name="BN2")
-        self.Squares[63] = Rook(square=63, color="Black", name="BR2")
+        self.Squares[56] = Rook(square=56, color="Black", name="bR")
+        self.Squares[57] = Knight(square=57, color="Black", name="bN")
+        self.Squares[58] = Bishop(square=58, color="Black", name="bB")
+        self.Squares[59] = Queen(square=59, color="Black", name="bQ")
+        self.Squares[60] = King(square=60, color="Black", name="bK")
+        self.Squares[61] = Bishop(square=61, color="Black", name="bB")
+        self.Squares[62] = Knight(square=62, color="Black", name="bN")
+        self.Squares[63] = Rook(square=63, color="Black", name="bR")
         
         self.update_pieces()
 
     # Print the board to the screen
+       
+
+
     def getSquares(self):
         return self.Squares
+    
+    def getSquare(self, r, c):
+        return self.Squares[r * DIMENSION + c]
     
     def getWhitePos(self):
         return self.white_pieces
@@ -213,12 +230,52 @@ class Board:
                 self.make_move(move)
                 
 
-    
+# functions for drawing the board
+def load_images():
+    pieces = ['wp', 'wR', 'wN', 'wB', 'wK', 'wQ', 'bp', 'bR', 'bN', 'bB', 'bK', 'bQ' ]
+    for pie in pieces:
+        IMAGES[pie] = p.transform.scale(p.image.load('C:\\Users\\zane5\\GitHubEngine\\ChessEngine\\images\\' + pie + '.png'), (SQ_SIZE, SQ_SIZE))
+        
+def drawGameState(screen, board):
+    drawBoard(screen)
+
+    drawPieces(screen, board)
+
+def drawBoard(screen):
+    colors = [p.Color('white'), p.Color('gray')]
+    for r in range(DIMENSION):
+        for c in range(DIMENSION):
+            color = colors[((r+c) % 2)]
+            p.draw.rect(screen, color, p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+def drawPieces(screen, board):
+    for r in range(DIMENSION):
+        for c in range(DIMENSION):
+            piece =  board.getSquare(r, c)
+            if piece != 0:
+                screen.blit(IMAGES[piece.getName()], p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
     
 
 def main():
+    # set up board
     board = Board()
-    board.play_game()
+    p.init()
+    screen = p.display.set_mode((WIDTH, HEIGHT))
+    clock = p.time.Clock()
+    screen.fill(p.Color('white'))
+    load_images()
+    running = True
+
+    while running:
+        drawGameState(screen, board)
+        for e in p.event.get():
+            if e.type == p.QUIT:
+                running = False
+
+        clock.tick(MAX_FPS)
+        p.display.flip()
+
 
 
         
